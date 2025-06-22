@@ -1,1 +1,1 @@
-pub(crate) mod path_solver;
+pub(crate) mod text_diff;
