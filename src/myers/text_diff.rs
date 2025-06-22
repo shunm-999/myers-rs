@@ -10,8 +10,17 @@ impl TextDiff {
         let old: Lines = old.into();
         let new: Lines = new.into();
 
-        let edits = TextDiffSolver::diff(&old, &new).unwrap_or(Vec::new());
-        let edits = edits.compress();
+        let edits = {
+            let edits = TextDiffSolver::diff(&old, &new).unwrap_or(Vec::new());
+            let mut edits = edits.compress();
+            if edits.is_empty() {
+                edits.push(EditTag::Equal {
+                    old: Line::new(0, "".to_string()),
+                    new: Line::new(0, "".to_string()),
+                })
+            }
+            edits
+        };
         Self { edits }
     }
 }
@@ -81,7 +90,7 @@ impl TextDiffSolver {
 
         let mut edits = vec![];
 
-        for i in (0..=track.len()).rev() {
+        for i in (0..track.len()).rev() {
             let (v, d) = &track[i];
             let k = x - y;
 
@@ -188,5 +197,60 @@ impl Compress for Vec<EditTag> {
             }
             (_, _) => None,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // 基本的なテストケース
+    #[test]
+    fn test_empty_strings() {
+        let diff = TextDiff::from_lines("", "");
+        assert_eq!(diff.edits.len(), 1);
+        match &diff.edits[0] {
+            EditTag::Equal { old, new } => {
+                assert_eq!(old.text, "");
+                assert_eq!(new.text, "");
+            }
+            _ => panic!("Expected Equal"),
+        }
+    }
+
+    #[test]
+    fn test_empty_old_string() {
+        let diff = TextDiff::from_lines("", "hello\nworld");
+        assert_eq!(diff.edits.len(), 2);
+        match &diff.edits[0] {
+            EditTag::Insert { new } => {
+                assert_eq!(new.text, "hello");
+            }
+            _ => panic!("Expected Insert"),
+        }
+        match &diff.edits[1] {
+            EditTag::Insert { new } => {
+                assert_eq!(new.text, "world");
+            }
+            _ => panic!("Expected Insert"),
+        }
+    }
+
+    #[test]
+    fn test_empty_new_string() {
+        let diff = TextDiff::from_lines("hello\nworld", "");
+        assert_eq!(diff.edits.len(), 2);
+        match &diff.edits[0] {
+            EditTag::Delete { old } => {
+                assert_eq!(old.text, "hello");
+            }
+            _ => panic!("Expected Delete"),
+        }
+        match &diff.edits[1] {
+            EditTag::Delete { old } => {
+                assert_eq!(old.text, "world");
+            }
+            _ => panic!("Expected Delete"),
+        }
     }
 }
