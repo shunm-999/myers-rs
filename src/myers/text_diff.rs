@@ -273,4 +273,27 @@ mod tests {
             _ => panic!("Expected Insert"),
         }
     }
+    #[test]
+    fn test_modify_and_insert_new_string() {
+        let diff = TextDiff::from_lines("Hi!", "hello\nworld");
+        assert_eq!(diff.edits.len(), 3);
+        match &diff.edits[0] {
+            EditTag::Delete { old } => {
+                assert_eq!(old.text, "Hi!");
+            }
+            _ => panic!("Expected Delete"),
+        }
+        match &diff.edits[1] {
+            EditTag::Insert { new } => {
+                assert_eq!(new.text, "hello");
+            }
+            _ => panic!("Expected Insert"),
+        }
+        match &diff.edits[2] {
+            EditTag::Insert { new } => {
+                assert_eq!(new.text, "world");
+            }
+            _ => panic!("Expected Insert"),
+        }
+    }
 }
