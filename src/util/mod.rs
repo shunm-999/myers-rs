@@ -1,2 +1,2 @@
-mod bp_vec;
-mod lines;
+pub(crate) mod bp_vec;
+pub(crate) mod lines;

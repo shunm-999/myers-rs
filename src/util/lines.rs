@@ -1,6 +1,6 @@
 use std::slice;
 
-struct Line {
+pub(crate) struct Line {
     number: u64,
     text: String,
 }
@@ -11,8 +11,14 @@ impl Line {
     }
 }
 
-struct Lines {
+pub(crate) struct Lines {
     inner: Vec<Line>,
+}
+
+impl Lines {
+    pub(crate) fn len(&self) -> usize {
+        self.inner.len()
+    }
 }
 
 impl From<String> for Lines {

@@ -1,1 +1,1 @@
-mod path_solver;
+pub(crate) mod path_solver;
