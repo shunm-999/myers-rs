@@ -1,5 +1,6 @@
 use std::ops::{Index, IndexMut};
 
+#[derive(Debug)]
 pub(crate) struct BpVec<T> {
     inner: Vec<T>,
 }

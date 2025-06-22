@@ -1,7 +1,7 @@
 use std::ops::{Add, Index};
 use std::slice;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub(crate) struct Line {
     pub(crate) number: u64,
     pub(crate) text: String,
@@ -65,7 +65,13 @@ impl<'a> IntoIterator for &'a Lines {
 impl Index<i64> for Lines {
     type Output = Line;
     fn index(&self, index: i64) -> &Self::Output {
-        &self.inner[index as usize]
+        let len = self.inner.len();
+        let index = if index < 0 {
+            (len as i64 + index) as usize
+        } else {
+            index as usize
+        };
+        &self.inner[index]
     }
 }
 

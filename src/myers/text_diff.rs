@@ -12,6 +12,7 @@ impl TextDiff {
 
         let edits = {
             let edits = TextDiffSolver::diff(&old, &new).unwrap_or(Vec::new());
+            let edits: Vec<EditTag> = edits.into_iter().rev().collect();
             let mut edits = edits.compress();
             if edits.is_empty() {
                 edits.push(EditTag::Equal {
@@ -31,7 +32,7 @@ enum TextDiffSolverError {
     NoSolutionFound,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum EditTag {
     Insert { new: Line },
     Delete { old: Line },
@@ -49,7 +50,6 @@ impl TextDiffSolver {
     ) -> Result<Vec<(BpVec<i64>, i64)>, TextDiffSolverError> {
         let n = old.len();
         let m = new.len();
-
         let max = n + m;
 
         let mut v = BpVec::new_with_capacity(2 * max + 1, 0i64);
@@ -58,7 +58,6 @@ impl TextDiffSolver {
 
         for d in 0..=max {
             let d = d as i64;
-            trace.push((v.clone(), d));
 
             for k in ((-d)..=d).step_by(2) {
                 let mut x;
@@ -77,9 +76,11 @@ impl TextDiffSolver {
                 }
                 v[k] = x;
                 if x >= n as i64 && y >= m as i64 {
+                    trace.push((v.clone(), d));
                     return Ok(trace);
                 }
             }
+            trace.push((v.clone(), d));
         }
         Err(TextDiffSolverError::NoSolutionFound)
     }
@@ -113,13 +114,15 @@ impl TextDiffSolver {
 
             if *d > 0i64 {
                 if x == prev_x {
-                    edits.push(EditTag::Insert {
-                        new: new[prev_y].clone(),
-                    });
+                    let line = new[prev_y].clone();
+                    if line.text != "" {
+                        edits.push(EditTag::Insert { new: line });
+                    }
                 } else if y == prev_y {
-                    edits.push(EditTag::Delete {
-                        old: old[prev_x].clone(),
-                    });
+                    let line = old[prev_x].clone();
+                    if line.text != "" {
+                        edits.push(EditTag::Delete { old: line });
+                    }
                 }
             }
             x = prev_x;
