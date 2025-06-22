@@ -100,7 +100,7 @@ impl TextDiffSolver {
                 k - 1
             };
             let prev_x = v[prev_k];
-            let prev_y = prev_k - prev_x;
+            let prev_y = prev_x - prev_k;
 
             while x > prev_x && y > prev_y {
                 x = x - 1;
@@ -253,6 +253,24 @@ mod tests {
                 assert_eq!(old.text, "world");
             }
             _ => panic!("Expected Delete"),
+        }
+    }
+
+    #[test]
+    fn test_insert_new_string() {
+        let diff = TextDiff::from_lines("hello", "hello\nworld");
+        assert_eq!(diff.edits.len(), 2);
+        match &diff.edits[0] {
+            EditTag::Equal { old, new } => {
+                assert_eq!(old.text, "hello");
+            }
+            _ => panic!("Expected Equal"),
+        }
+        match &diff.edits[1] {
+            EditTag::Insert { new } => {
+                assert_eq!(new.text, "world");
+            }
+            _ => panic!("Expected Insert"),
         }
     }
 }
