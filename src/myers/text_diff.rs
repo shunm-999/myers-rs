@@ -2,9 +2,23 @@ use crate::myers::text_diff::EditTag::{Delete, Insert};
 use crate::util::bp_vec::BpVec;
 use crate::util::lines::{Line, Lines};
 
-pub struct TextDiffSolver {}
+pub struct TextDiff {
+    edits: Vec<EditTag>,
+}
 
-pub enum TextDiffSolverError {
+impl TextDiff {
+    pub fn from_lines(old: &str, new: &str) -> Self {
+        let old: Lines = old.into();
+        let new: Lines = new.into();
+
+        let edits = TextDiffSolver::diff(&old, &new).unwrap_or(Vec::new());
+        Self { edits }
+    }
+}
+
+struct TextDiffSolver {}
+
+enum TextDiffSolverError {
     NoSolutionFound,
 }
 
