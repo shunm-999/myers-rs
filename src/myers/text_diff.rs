@@ -58,6 +58,7 @@ impl TextDiffSolver {
 
         for d in 0..=max {
             let d = d as i64;
+            trace.push((v.clone(), d));
 
             for k in ((-d)..=d).step_by(2) {
                 let mut x;
@@ -76,11 +77,9 @@ impl TextDiffSolver {
                 }
                 v[k] = x;
                 if x >= n as i64 && y >= m as i64 {
-                    trace.push((v.clone(), d));
                     return Ok(trace);
                 }
             }
-            trace.push((v.clone(), d));
         }
         Err(TextDiffSolverError::NoSolutionFound)
     }
