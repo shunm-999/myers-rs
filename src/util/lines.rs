@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Add, Index};
 use std::slice;
 
 #[derive(Clone, Default)]
@@ -10,6 +10,17 @@ pub(crate) struct Line {
 impl Line {
     pub fn new(number: u64, text: String) -> Self {
         Self { number, text }
+    }
+}
+
+impl Add for Line {
+    type Output = Line;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Line {
+            number: self.number,
+            text: self.text + &rhs.text,
+        }
     }
 }
 

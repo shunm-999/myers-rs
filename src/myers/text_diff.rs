@@ -1,4 +1,3 @@
-use crate::myers::text_diff::EditTag::{Delete, Insert};
 use crate::util::bp_vec::BpVec;
 use crate::util::lines::{Line, Lines};
 
@@ -12,6 +11,7 @@ impl TextDiff {
         let new: Lines = new.into();
 
         let edits = TextDiffSolver::diff(&old, &new).unwrap_or(Vec::new());
+        let edits = edits.compress();
         Self { edits }
     }
 }
@@ -22,6 +22,7 @@ enum TextDiffSolverError {
     NoSolutionFound,
 }
 
+#[derive(Clone)]
 pub enum EditTag {
     Insert { new: Line },
     Delete { old: Line },
@@ -103,11 +104,11 @@ impl TextDiffSolver {
 
             if *d > 0i64 {
                 if x == prev_x {
-                    edits.push(Insert {
+                    edits.push(EditTag::Insert {
                         new: new[prev_y].clone(),
                     });
                 } else if y == prev_y {
-                    edits.push(Delete {
+                    edits.push(EditTag::Delete {
                         old: old[prev_x].clone(),
                     });
                 }
@@ -117,5 +118,75 @@ impl TextDiffSolver {
         }
 
         edits
+    }
+}
+
+trait MergeAdjacent<T: 'static + Clone>: IntoIterator<Item = T> {
+    fn merge_adjacent<F>(self, merge: F) -> Vec<T>
+    where
+        F: Fn(&T, &T) -> Option<T>;
+}
+
+impl<T: 'static + Clone> MergeAdjacent<T> for Vec<T> {
+    fn merge_adjacent<F>(self, merge: F) -> Vec<T>
+    where
+        F: Fn(&T, &T) -> Option<T>,
+    {
+        let mut iter = self.into_iter().peekable();
+        let mut result = Vec::new();
+
+        while let Some(mut current) = iter.next() {
+            while let Some(next) = iter.peek() {
+                if let Some(merged) = merge(&current, next) {
+                    current = merged;
+                    iter.next(); // skip merged `next`
+                } else {
+                    break;
+                }
+            }
+            result.push(current);
+        }
+        result
+    }
+}
+
+trait Compress {
+    fn compress(self) -> Self;
+}
+
+impl Compress for Vec<EditTag> {
+    fn compress(self) -> Self {
+        self.merge_adjacent(|left, right| match (left, right) {
+            (EditTag::Insert { new: left_line }, EditTag::Insert { new: right_line }) => {
+                if left_line.number == right_line.number {
+                    Some(EditTag::Insert {
+                        new: left_line.clone() + right_line.clone(),
+                    })
+                } else {
+                    None
+                }
+            }
+            (EditTag::Delete { old: left_line }, EditTag::Delete { old: right_line }) => {
+                if left_line.number == right_line.number {
+                    Some(EditTag::Delete {
+                        old: left_line.clone() + right_line.clone(),
+                    })
+                } else {
+                    None
+                }
+            }
+            (EditTag::Equal { old: left_line, .. }, EditTag::Delete { old: right_line }) => {
+                if left_line.number == right_line.number {
+                    let old = left_line.clone() + right_line.clone();
+                    Some(EditTag::Equal {
+                        old: old.clone(),
+                        new: old,
+                    })
+                } else {
+                    None
+                }
+            }
+            (_, _) => None,
+        })
     }
 }
