@@ -4,9 +4,14 @@ pub(crate) struct BpVec<T> {
     inner: Vec<T>,
 }
 
-impl<T> BpVec<T> {
+impl<T: Default + Clone> BpVec<T> {
     pub(crate) fn new() -> Self {
         Self { inner: vec![] }
+    }
+    pub(crate) fn new_with_capacity(capacity: usize, default: T) -> Self {
+        Self {
+            inner: vec![default; capacity],
+        }
     }
 
     fn get_index(&self, index: i64) -> usize {
@@ -32,7 +37,7 @@ impl<T> BpVec<T> {
     }
 }
 
-impl<T> Index<i64> for BpVec<T> {
+impl<T: Default + Clone> Index<i64> for BpVec<T> {
     type Output = T;
     fn index(&self, index: i64) -> &Self::Output {
         let index = self.get_index(index);
@@ -40,10 +45,17 @@ impl<T> Index<i64> for BpVec<T> {
     }
 }
 
-impl<T> IndexMut<i64> for BpVec<T> {
+impl<T: Default + Clone> IndexMut<i64> for BpVec<T> {
     fn index_mut(&mut self, index: i64) -> &mut Self::Output {
         let index = self.get_index(index);
         &mut self.inner[index]
+    }
+}
+
+impl<'a, T: 'static> Iterator for &'a BpVec<T> {
+    type Item = &'a T;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.iter().next()
     }
 }
 

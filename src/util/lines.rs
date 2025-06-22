@@ -1,8 +1,10 @@
+use std::ops::Index;
 use std::slice;
 
+#[derive(Clone, Default)]
 pub(crate) struct Line {
-    number: u64,
-    text: String,
+    pub(crate) number: u64,
+    pub(crate) text: String,
 }
 
 impl Line {
@@ -46,6 +48,13 @@ impl<'a> IntoIterator for &'a Lines {
 
     fn into_iter(self) -> Self::IntoIter {
         self.inner.iter()
+    }
+}
+
+impl Index<i64> for Lines {
+    type Output = Line;
+    fn index(&self, index: i64) -> &Self::Output {
+        &self.inner[index as usize]
     }
 }
 
