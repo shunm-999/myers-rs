@@ -1,5 +1,5 @@
 [package]
-name = "myers-rs"
+name = "myers"
 version = "0.1.0"
 edition = "2024"
 
