@@ -1,1 +1,1 @@
-pub(crate) mod text_diff;
+pub mod text_diff;
