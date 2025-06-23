@@ -2,9 +2,9 @@ use std::ops::{Add, Index};
 use std::slice;
 
 #[derive(Clone, Default, Debug)]
-pub(crate) struct Line {
-    pub(crate) number: u64,
-    pub(crate) text: String,
+pub struct Line {
+    pub number: u64,
+    pub text: String,
 }
 
 impl Line {

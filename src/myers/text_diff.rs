@@ -2,7 +2,7 @@ use crate::util::bp_vec::BpVec;
 use crate::util::lines::{Line, Lines};
 
 pub struct TextDiff {
-    edits: Vec<EditTag>,
+    pub edits: Vec<EditTag>,
 }
 
 impl TextDiff {
